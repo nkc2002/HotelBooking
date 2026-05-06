@@ -17,13 +17,25 @@ const Hotels = () => {
   const [loading, setLoading] = useState(true);
   const [hotels, setHotels] = useState([]);
   const [error, setError] = useState(null);
+  const initialLocation = searchParams.get("city") || searchParams.get("location") || "";
   const [searchQuery, setSearchQuery] = useState({
-    location: searchParams.get("city") || "",
+    location: initialLocation,
+    checkIn: searchParams.get("checkIn") || "",
+    checkOut: searchParams.get("checkOut") || "",
+    guests: searchParams.get("guests") || 1,
   });
+
+  useEffect(() => {
+    const city = searchParams.get("city") || searchParams.get("location") || "";
+    if (city) {
+      setSearchQuery((prev) => ({ ...prev, location: city }));
+    }
+  }, [searchParams]);
+
   const [filters, setFilters] = useState({
     priceRange: { min: 0, max: 1000 },
     rating: null,
-    amenities: [],
+    cities: [],
   });
   const [sortBy, setSortBy] = useState("recommended");
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,21 +59,35 @@ const Hotels = () => {
   }, []);
 
   const normalizeHotel = (hotel) => ({
-    ...hotel,
-    id: hotel._id || hotel.id,
-    location: hotel.location || hotel.address || `${hotel.city || ""}`,
-    city: hotel.city || hotel.location || "",
-    image: hotel.images?.[0] || hotel.image || "",
-    price: hotel.pricePerNight || hotel.price || 0,
-    rating: hotel.rating || hotel.averageRating || 0,
-    reviews: hotel.numReviews || hotel.reviews || 0,
-    amenities: hotel.amenities || [],
+    ...(hotel || {}),
+    id: hotel?._id || hotel?.id,
+    location: [hotel?.address, hotel?.city].filter(Boolean).join(", ") || hotel?.location || "",
+    city: hotel?.city || hotel?.location || "",
+    image: hotel?.images?.[0] || hotel?.image || "",
+    price: hotel?.minRoomPrice ?? hotel?.pricePerNight ?? hotel?.price ?? 0,
+    rating:
+      hotel?.averageRating ??
+      hotel?.rating ??
+      0,
+    reviews:
+      hotel?.numReviews ??
+      hotel?.totalReviews ??
+      (Array.isArray(hotel?.reviews) ? hotel.reviews.length : hotel?.reviews) ??
+      0,
+    amenities: hotel?.amenities || [],
   });
 
   const normalizedHotels = useMemo(
     () => hotels.map(normalizeHotel),
     [hotels]
   );
+
+  const availableCities = useMemo(() => {
+    const citySet = new Set(
+      normalizedHotels.map((h) => h.city).filter(Boolean)
+    );
+    return [...citySet].sort((a, b) => a.localeCompare(b, "vi")).slice(0, 10);
+  }, [normalizedHotels]);
 
   const filteredHotels = useMemo(() => {
     return normalizedHotels.filter((hotel) => {
@@ -74,11 +100,12 @@ const Hotels = () => {
       if (filters.rating && hotel.rating < filters.rating) {
         return false;
       }
-      if (filters.amenities.length > 0) {
-        const hasAllAmenities = filters.amenities.every((amenity) =>
-          hotel.amenities.includes(amenity)
+      if (filters.cities.length > 0) {
+        const hotelLocation = `${hotel.city || ""} ${hotel.location || ""}`.toLowerCase();
+        const isInSelectedCity = filters.cities.some((city) =>
+          hotelLocation.includes(city.toLowerCase())
         );
-        if (!hasAllAmenities) return false;
+        if (!isInSelectedCity) return false;
       }
       if (searchQuery.location) {
         const searchLower = searchQuery.location.toLowerCase();
@@ -129,7 +156,7 @@ const Hotels = () => {
 
   const activeFiltersCount =
     (filters.rating ? 1 : 0) +
-    filters.amenities.length +
+    filters.cities.length +
     (filters.priceRange.min > 0 || filters.priceRange.max < 1000 ? 1 : 0);
 
   return (
@@ -138,7 +165,7 @@ const Hotels = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <SearchBar onSearch={handleSearch} />
+          <SearchBar onSearch={handleSearch} initialValues={searchQuery} />
         </div>
 
         {error && (
@@ -153,7 +180,7 @@ const Hotels = () => {
             className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <SlidersHorizontal size={18} />
-            <span className="font-medium">Filters</span>
+            <span className="font-medium">Bộ lọc</span>
             {activeFiltersCount > 0 && (
               <span className="w-5 h-5 bg-[#FF385C] text-white text-xs rounded-full flex items-center justify-center">
                 {activeFiltersCount}
@@ -163,17 +190,17 @@ const Hotels = () => {
 
           <div className="flex items-center gap-4 ml-auto">
             <label className="text-sm text-gray-600 hidden sm:block">
-              Sort by:
+              Sắp xếp theo:
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none cursor-pointer"
             >
-              <option value="recommended">Recommended</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
+              <option value="recommended">Đề xuất</option>
+              <option value="price-low">Giá: thấp đến cao</option>
+              <option value="price-high">Giá: cao đến thấp</option>
+              <option value="rating">Đánh giá cao nhất</option>
             </select>
           </div>
         </div>
@@ -183,6 +210,7 @@ const Hotels = () => {
           onFilterChange={handleFilterChange}
           isOpen={isFilterOpen}
           onClose={() => setIsFilterOpen(false)}
+          availableCities={availableCities}
         />
 
         <div className="flex gap-8">
@@ -191,6 +219,7 @@ const Hotels = () => {
               <DesktopFilterSidebar
                 filters={filters}
                 onFilterChange={handleFilterChange}
+                availableCities={availableCities}
               />
             </div>
           </div>
@@ -210,7 +239,7 @@ const Hotels = () => {
                     disabled={currentPage === 1}
                     className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Previous
+                    Trước
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                     (page) => (
@@ -232,7 +261,7 @@ const Hotels = () => {
                     disabled={currentPage === totalPages}
                     className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Next
+                    Sau
                   </button>
                 </div>
               </div>

@@ -13,6 +13,7 @@ import {
   Link,
   DoorOpen,
   Users,
+  BedDouble,
   ChevronRight,
   Loader2,
 } from "lucide-react";
@@ -30,6 +31,8 @@ const HotelsManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingHotel, setViewingHotel] = useState(null);
+  const [viewingHotelRooms, setViewingHotelRooms] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
   const [editingHotel, setEditingHotel] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,10 +75,21 @@ const HotelsManagement = () => {
     }
   };
 
-  const handleView = (hotel) => {
+  const handleView = async (hotel) => {
     setViewingHotel(hotel);
+    setViewingHotelRooms([]);
     setShowViewModal(true);
     setActiveDropdown(null);
+    setLoadingRooms(true);
+    try {
+      const res = await api.getHotelRooms(hotel.id || hotel._id);
+      const rooms = res.data || res.rooms || res || [];
+      setViewingHotelRooms(Array.isArray(rooms) ? rooms : []);
+    } catch {
+      setViewingHotelRooms([]);
+    } finally {
+      setLoadingRooms(false);
+    }
   };
 
   const cities = [
@@ -747,11 +761,23 @@ const HotelsManagement = () => {
                     {viewingHotel.address}, {viewingHotel.city}
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Star size={18} className="text-amber-400 fill-amber-400" />
-                  <span className="font-semibold">
-                    {viewingHotel.rating || 0}
-                  </span>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="flex items-center gap-1">
+                    <Star size={18} className="text-amber-400 fill-amber-400" />
+                    <span className="font-semibold">
+                      {viewingHotel.rating || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-full">
+                    <DoorOpen size={16} className="text-blue-600" />
+                    {loadingRooms ? (
+                      <span className="text-sm text-blue-600">Đang tải...</span>
+                    ) : (
+                      <span className="text-sm font-semibold text-blue-700">
+                        {viewingHotelRooms.length} phòng hiện có
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               {viewingHotel.description && (
@@ -787,6 +813,63 @@ const HotelsManagement = () => {
                   </div>
                 </div>
               )}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <DoorOpen size={18} className="text-blue-600" />
+                  Danh sách phòng
+                  {!loadingRooms && (
+                    <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                      {viewingHotelRooms.length}
+                    </span>
+                  )}
+                </h4>
+                {loadingRooms ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 size={24} className="animate-spin text-[#FF385C]" />
+                  </div>
+                ) : viewingHotelRooms.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic py-3">Chưa có phòng nào</p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {viewingHotelRooms.map((room) => (
+                      <div
+                        key={room._id || room.id}
+                        className="flex items-center justify-between px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-100"
+                      >
+                        <div className="flex items-center gap-2">
+                          <BedDouble size={16} className="text-gray-400" />
+                          <span className="text-sm font-medium text-gray-800">
+                            {room.title || room.name || "Phòng"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {room.maxPeople && (
+                            <span className="flex items-center gap-1 text-xs text-gray-500">
+                              <Users size={12} />
+                              {room.maxPeople} khách
+                            </span>
+                          )}
+                          {room.price && (
+                            <span className="text-xs font-semibold text-[#FF385C]">
+                              ${room.price.toLocaleString()}/đêm
+                            </span>
+                          )}
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              room.availableRooms > 0
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {room.availableRooms ?? 0}/{room.totalRooms ?? 0} phòng trống
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => {
@@ -796,6 +879,16 @@ const HotelsManagement = () => {
                   className="flex-1 px-4 py-2.5 bg-[#FF385C] text-white font-medium rounded-lg hover:bg-[#E31C5F] cursor-pointer"
                 >
                   Chỉnh sửa
+                </button>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleManageRooms(viewingHotel.name);
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <DoorOpen size={16} />
+                  Quản lý phòng
                 </button>
                 <button
                   onClick={() => setShowViewModal(false)}

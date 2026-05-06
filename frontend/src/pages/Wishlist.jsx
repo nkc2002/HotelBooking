@@ -88,13 +88,6 @@ const Wishlist = () => {
                       className="text-[#FF385C] fill-[#FF385C] group-hover:scale-110 transition-transform"
                     />
                   </button>
-                  {/* Price Badge */}
-                  <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-sm">
-                    <span className="text-lg font-bold text-gray-900">
-                      {hotel.price?.toLocaleString('vi-VN') || hotel.price}đ
-                    </span>
-                    <span className="text-sm text-gray-500">/đêm</span>
-                  </div>
                 </div>
 
                 {/* Content */}

@@ -10,6 +10,7 @@ const reviewRoutes = require('./reviewRoutes');
 const userRoutes = require('./userRoutes');
 const amenityRoutes = require('./amenityRoutes');
 const blogRoutes = require('./blogRoutes');
+const chatRoutes = require('./chatRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -20,6 +21,7 @@ router.use('/reviews', reviewRoutes);
 router.use('/users', userRoutes);
 router.use('/amenities', amenityRoutes);
 router.use('/blogs', blogRoutes);
+router.use('/chat', chatRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

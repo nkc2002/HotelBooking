@@ -74,8 +74,8 @@ const normalizeBooking = (b) => {
     id: b._id || b.id,
     rawId: b._id || b.id,
     hotelId: b.hotelId?._id || b.hotelId || '',
-    hotel: b.hotelId?.name || b.hotel?.name || b.hotelName || 'Hotel',
-    room: b.roomId?.title || b.room?.title || b.roomTitle || 'Room',
+    hotel: b.hotelId?.name || b.hotel?.name || b.hotelName || 'Khách sạn',
+    room: b.roomId?.title || b.room?.title || b.roomTitle || 'Phòng',
     city: b.hotelId?.city || b.hotel?.city || b.hotel?.location || b.city || '',
     checkIn,
     checkOut,
@@ -141,9 +141,11 @@ const MyBookings = () => {
   const hasActiveFilters = statusFilter !== '';
 
   const filteredBookings = bookings.filter((b) => {
+    const shortCode = `BK-${b.id?.slice(-6).toUpperCase()}`;
     const matchSearch =
       b.hotel.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shortCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.room.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter ? b.status === statusFilter : true;
     return matchSearch && matchStatus;
@@ -394,7 +396,7 @@ const MyBookings = () => {
                           <span className="text-xs text-gray-400 uppercase tracking-wide">
                             Mã đặt phòng
                           </span>
-                          <p className="font-semibold text-gray-900 text-sm">{booking.id}</p>
+                          <p className="font-mono font-semibold text-gray-900 text-sm">#BK-{booking.id?.slice(-6).toUpperCase()}</p>
                         </div>
                         <div className="text-right mr-4">
                           <span className="text-xs text-gray-400">Tổng tiền</span>
@@ -504,7 +506,7 @@ const MyBookings = () => {
 
               <div className="space-y-3 text-sm">
                 {[
-                  { label: 'Mã đặt phòng', value: selectedBooking.id },
+                  { label: 'Mã đặt phòng', value: `#BK-${selectedBooking.id?.slice(-6).toUpperCase()}` },
                   selectedBooking.city && { label: 'Thành phố', value: selectedBooking.city },
                   selectedBooking.checkIn && {
                     label: 'Nhận phòng',

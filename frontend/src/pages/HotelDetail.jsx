@@ -36,8 +36,15 @@ const HotelDetail = () => {
           id: hotelData._id || hotelData.id,
           images: hotelData.images || (hotelData.image ? [hotelData.image] : []),
           price: hotelData.pricePerNight || hotelData.price || 0,
-          rating: hotelData.rating || hotelData.averageRating || 0,
-          reviews: hotelData.numReviews || hotelData.reviews || 0,
+          rating:
+            hotelData.averageRating ??
+            hotelData.rating ??
+            0,
+          reviews:
+            hotelData.numReviews ??
+            hotelData.totalReviews ??
+            (Array.isArray(hotelData.reviews) ? hotelData.reviews.length : hotelData.reviews) ??
+            0,
           amenities: hotelData.amenities || [],
           address: hotelData.address || hotelData.location || "",
         };
@@ -46,7 +53,7 @@ const HotelDetail = () => {
           ...room,
           id: room._id || room.id,
           roomNumberId: room._id || room.id,
-          title: room.title || room.name || "Room",
+          title: room.title || room.name || "Phòng",
           image: room.images?.[0] || room.image || "",
           price: room.pricePerNight || room.price || 0,
           capacity: room.maxPeople || room.capacity || 2,
@@ -120,77 +127,26 @@ const HotelDetail = () => {
 
         <div className="py-8 border-t border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Where you'll be
+            Vị trí của bạn
           </h2>
-          <p className="text-gray-700 mb-4">{hotel.address}</p>
-          <div className="h-96 bg-gray-100 rounded-2xl flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <svg
-                className="w-16 h-16 mx-auto mb-2 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <p>Map will be displayed here</p>
-              <p className="text-sm">Integration with Google Maps or Mapbox</p>
-            </div>
+          <p className="text-gray-700 mb-4">
+            {[hotel.address, hotel.city].filter(Boolean).join(", ")}
+          </p>
+          <div className="h-96 rounded-2xl overflow-hidden border border-gray-200">
+            <iframe
+              title="Vị trí khách sạn"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                [hotel.address, hotel.city].filter(Boolean).join(", ")
+              )}&output=embed&z=15`}
+            />
           </div>
         </div>
 
-        <div className="py-8 border-t border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Things to know
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">House rules</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>Check-in: After 3:00 PM</li>
-                <li>Checkout: 11:00 AM</li>
-                <li>No smoking</li>
-                <li>No pets allowed</li>
-                <li>No parties or events</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Safety & property
-              </h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>Pool/hot tub without a gate</li>
-                <li>Nearby lake, river, or water</li>
-                <li>Carbon monoxide alarm</li>
-                <li>Smoke alarm</li>
-                <li>Security cameras on property</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Cancellation policy
-              </h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>Free cancellation for 48 hours</li>
-                <li>Review the host's full policy</li>
-                <li>for details and exceptions</li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </main>
 
       <Footer />

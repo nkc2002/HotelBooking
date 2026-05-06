@@ -44,7 +44,7 @@ const ImageGallery = ({ images = [] }) => {
           >
             <img
               src={displayImages[0]}
-              alt="Hotel main"
+              alt="Ảnh chính khách sạn"
               className="w-full h-full object-cover hover:opacity-95 transition-opacity"
             />
           </div>
@@ -58,7 +58,7 @@ const ImageGallery = ({ images = [] }) => {
             >
               <img
                 src={image}
-                alt={`Hotel ${index + 2}`}
+                alt={`Khách sạn ${index + 2}`}
                 className="w-full h-full object-cover hover:opacity-95 transition-opacity"
               />
             </div>
@@ -102,7 +102,7 @@ const ImageGallery = ({ images = [] }) => {
           {/* Current Image */}
           <img
             src={displayImages[currentIndex]}
-            alt={`Hotel ${currentIndex + 1}`}
+            alt={`Khách sạn ${currentIndex + 1}`}
             className="max-h-[90vh] max-w-[90vw] object-contain"
           />
 

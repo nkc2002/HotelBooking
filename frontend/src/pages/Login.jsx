@@ -70,7 +70,7 @@ const Login = () => {
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
           src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200"
-          alt="Luxury Hotel"
+          alt="Khách sạn cao cấp"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />

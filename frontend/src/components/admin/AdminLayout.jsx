@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,41 +15,137 @@ import {
   Home,
   Sparkles,
   FileText,
+  Star,
+  MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 
 const navItems = [
-  { path: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
+  { path: "/admin", icon: LayoutDashboard, label: "Bảng điều khiển", end: true },
   { path: "/admin/hotels", icon: Building2, label: "Khách sạn" },
   { path: "/admin/rooms", icon: BedDouble, label: "Phòng" },
   { path: "/admin/amenities", icon: Sparkles, label: "Tiện nghi" },
   { path: "/admin/bookings", icon: CalendarCheck, label: "Đặt phòng" },
   { path: "/admin/users", icon: Users, label: "Người dùng" },
   { path: "/admin/blog", icon: FileText, label: "Blog" },
+  { path: "/admin/support", icon: MessageCircle, label: "Hỗ trợ khách hàng" },
 ];
 
-const mockNotifications = [
-  { id: 1, message: "Có đặt phòng mới", time: "5 phút trước", read: false },
-  {
-    id: 2,
-    message: "Người dùng mới đăng ký",
-    time: "1 giờ trước",
-    read: false,
-  },
-  {
-    id: 3,
-    message: "Có đánh giá khách sạn mới",
-    time: "2 giờ trước",
-    read: true,
-  },
-];
+const formatTimeAgo = (dateStr) => {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 1) return "Vừa xong";
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  if (diffHour < 24) return `${diffHour} giờ trước`;
+  if (diffDay < 7) return `${diffDay} ngày trước`;
+  return date.toLocaleDateString("vi-VN");
+};
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("admin_read_notifs") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const [bookingsRes, usersRes, reviewsRes] = await Promise.allSettled([
+        api.getBookings({ limit: 10, sort: "-createdAt" }),
+        api.getUsers({ limit: 10, sort: "-createdAt" }),
+        api.getReviews({ limit: 10 }),
+      ]);
+
+      const notifs = [];
+
+      if (bookingsRes.status === "fulfilled") {
+        const bookings = bookingsRes.value?.data || bookingsRes.value?.bookings || bookingsRes.value || [];
+        (Array.isArray(bookings) ? bookings : []).slice(0, 5).forEach((b) => {
+          const guestName = b.guestInfo?.firstName
+            ? `${b.guestInfo.firstName} ${b.guestInfo.lastName || ""}`.trim()
+            : b.user?.name || "Khách";
+          notifs.push({
+            id: `booking-${b._id}`,
+            type: "booking",
+            message: `${guestName} vừa đặt phòng`,
+            detail: b.hotel?.name || b.hotelName || "",
+            time: b.createdAt,
+            link: "/admin/bookings",
+          });
+        });
+      }
+
+      if (usersRes.status === "fulfilled") {
+        const users = usersRes.value?.data || usersRes.value?.users || usersRes.value || [];
+        (Array.isArray(users) ? users : [])
+          .filter((u) => u.role !== "admin")
+          .slice(0, 3)
+          .forEach((u) => {
+            notifs.push({
+              id: `user-${u._id}`,
+              type: "user",
+              message: `${u.name} vừa đăng ký tài khoản`,
+              detail: u.email || "",
+              time: u.createdAt,
+              link: "/admin/users",
+            });
+          });
+      }
+
+      if (reviewsRes.status === "fulfilled") {
+        const reviews = reviewsRes.value?.data || reviewsRes.value || [];
+        (Array.isArray(reviews) ? reviews : []).slice(0, 3).forEach((r) => {
+          notifs.push({
+            id: `review-${r._id}`,
+            type: "review",
+            message: `${r.userId?.name || "Khách"} đánh giá ${r.rating}★ cho ${r.hotelId?.name || "khách sạn"}`,
+            detail: r.comment ? r.comment.slice(0, 50) + (r.comment.length > 50 ? "..." : "") : "",
+            time: r.createdAt,
+            link: "/admin/hotels",
+          });
+        });
+      }
+
+      notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
+      setNotifications(notifs.slice(0, 10));
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  const unreadCount = notifications.filter((n) => !readIds.includes(n.id)).length;
+
+  const handleOpenNotifications = () => {
+    setNotificationsOpen(!notificationsOpen);
+    setProfileOpen(false);
+  };
+
+  const markAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    setReadIds(allIds);
+    localStorage.setItem("admin_read_notifs", JSON.stringify(allIds));
+  };
 
   const handleLogout = () => {
     logout();
@@ -159,36 +255,83 @@ const AdminLayout = () => {
               {/* Notifications */}
               <div className="relative">
                 <button
-                  onClick={() => {
-                    setNotificationsOpen(!notificationsOpen);
-                    setProfileOpen(false);
-                  }}
+                  onClick={handleOpenNotifications}
                   className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg cursor-pointer"
                 >
                   <Bell size={20} />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                    <div className="px-4 py-2 border-b border-gray-100">
+                  <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                       <h3 className="font-semibold text-gray-900">Thông báo</h3>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllRead}
+                          className="text-xs text-[#FF385C] hover:underline cursor-pointer"
+                        >
+                          Đánh dấu tất cả đã đọc
+                        </button>
+                      )}
                     </div>
-                    {mockNotifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${!notif.read ? "bg-blue-50/50" : ""}`}
+                    <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                          Không có thông báo nào
+                        </div>
+                      ) : (
+                        notifications.map((notif) => {
+                          const isRead = readIds.includes(notif.id);
+                          return (
+                            <Link
+                              key={notif.id}
+                              to={notif.link}
+                              onClick={() => {
+                                const newIds = [...new Set([...readIds, notif.id])];
+                                setReadIds(newIds);
+                                localStorage.setItem("admin_read_notifs", JSON.stringify(newIds));
+                                setNotificationsOpen(false);
+                              }}
+                              className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${!isRead ? "bg-blue-50/40" : ""}`}
+                            >
+                              <div className={`mt-0.5 p-2 rounded-full flex-shrink-0 ${
+                                notif.type === "booking" ? "bg-green-100" :
+                                notif.type === "user" ? "bg-purple-100" : "bg-amber-100"
+                              }`}>
+                                {notif.type === "booking" && <CalendarCheck size={14} className="text-green-600" />}
+                                {notif.type === "user" && <Users size={14} className="text-purple-600" />}
+                                {notif.type === "review" && <Star size={14} className="text-amber-500" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm ${!isRead ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+                                  {notif.message}
+                                </p>
+                                {notif.detail && (
+                                  <p className="text-xs text-gray-400 mt-0.5 truncate">{notif.detail}</p>
+                                )}
+                                <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(notif.time)}</p>
+                              </div>
+                              {!isRead && (
+                                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                              )}
+                            </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                    <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+                      <Link
+                        to="/admin/bookings"
+                        onClick={() => setNotificationsOpen(false)}
+                        className="text-sm text-[#FF385C] hover:underline cursor-pointer font-medium"
                       >
-                        <p className="text-sm text-gray-800">{notif.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {notif.time}
-                        </p>
-                      </div>
-                    ))}
-                    <div className="px-4 py-2 border-t border-gray-100">
-                      <button className="text-sm text-[#FF385C] hover:underline cursor-pointer">
-                        Xem tất cả thông báo
-                      </button>
+                        Xem tất cả đặt phòng →
+                      </Link>
                     </div>
                   </div>
                 )}

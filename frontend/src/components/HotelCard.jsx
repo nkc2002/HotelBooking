@@ -17,11 +17,11 @@ const HotelCard = ({ hotel }) => {
     name,
     location,
     image,
-    price,
     rating,
     reviews,
     amenities = [],
   } = hotel;
+  const hasReviews = Number(reviews) > 0;
 
   const handleSaveClick = (e) => {
     e.preventDefault();
@@ -41,27 +41,28 @@ const HotelCard = ({ hotel }) => {
         <button 
           className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full shadow-sm transition-colors cursor-pointer"
           onClick={handleSaveClick}
-          aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-label={isSaved ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
         >
           <Heart 
             size={18} 
             className={`transition-colors ${isSaved ? 'text-[#FF385C] fill-[#FF385C]' : 'text-gray-600 hover:text-[#FF385C]'}`} 
           />
         </button>
-        {/* Price Badge */}
-        <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-sm">
-          <span className="text-lg font-bold text-gray-900">${price}</span>
-          <span className="text-sm text-gray-500">/night</span>
-        </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
         {/* Rating */}
         <div className="flex items-center gap-1 mb-2">
-          <Star size={16} className="text-[#FF385C] fill-[#FF385C]" />
-          <span className="text-sm font-semibold text-gray-900">{rating}</span>
-          <span className="text-sm text-gray-500">({reviews} reviews)</span>
+          {hasReviews ? (
+            <>
+              <Star size={16} className="text-[#FF385C] fill-[#FF385C]" />
+              <span className="text-sm font-semibold text-gray-900">{rating}</span>
+              <span className="text-sm text-gray-500">({reviews} đánh giá)</span>
+            </>
+          ) : (
+            <span className="text-sm text-gray-500">Chưa có đánh giá</span>
+          )}
         </div>
 
         {/* Name */}
@@ -91,7 +92,7 @@ const HotelCard = ({ hotel }) => {
               );
             })}
             {amenities.length > 3 && (
-              <span className="text-xs text-gray-500">+{amenities.length - 3} more</span>
+              <span className="text-xs text-gray-500">+{amenities.length - 3} tiện ích khác</span>
             )}
           </div>
         )}
@@ -101,7 +102,7 @@ const HotelCard = ({ hotel }) => {
           to={`/hotels/${id}`}
           className="block w-full py-2.5 text-center bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer"
         >
-          View Details
+          Xem chi tiết
         </Link>
       </div>
     </div>

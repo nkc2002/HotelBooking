@@ -6,7 +6,6 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Download,
   Loader2,
   CreditCard,
 } from "lucide-react";
@@ -163,9 +162,11 @@ const BookingsManagement = () => {
   const hotelNames = [...new Set(bookings.map((b) => b.hotel).filter(Boolean))];
 
   const filteredBookings = bookings.filter((b) => {
+    const shortCode = `BK-${b.id?.slice(-6).toUpperCase()}`;
     const matchSearch =
       b.guest.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shortCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.hotel.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter ? b.status === statusFilter : true;
     const matchPayment = paymentFilter
@@ -226,13 +227,6 @@ const BookingsManagement = () => {
             Quản lý toàn bộ đơn đặt phòng theo quy trình
           </p>
         </div>
-        <button
-          onClick={fetchBookings}
-          className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-        >
-          <Download size={18} />
-          Làm mới
-        </button>
       </div>
 
       {/* Stats */}
@@ -422,8 +416,8 @@ const BookingsManagement = () => {
                         className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                       >
                         <td className="px-5 py-4">
-                          <p className="font-medium text-gray-900 text-xs truncate max-w-[120px]">
-                            {booking.id}
+                          <p className="font-mono font-semibold text-gray-700 text-xs">
+                            #BK-{booking.id?.slice(-6).toUpperCase()}
                           </p>
                           <p className="text-sm font-medium text-gray-800 mt-0.5">
                             {booking.guest}
@@ -657,7 +651,7 @@ const BookingsManagement = () => {
 
             <div className="p-6 space-y-3 text-sm">
               {[
-                { label: "Mã đặt phòng", value: selectedBooking.id },
+                { label: "Mã đặt phòng", value: `#BK-${selectedBooking.id?.slice(-6).toUpperCase()}` },
                 { label: "Khách hàng", value: selectedBooking.guest },
                 { label: "Email", value: selectedBooking.email },
                 { label: "Khách sạn", value: selectedBooking.hotel },

@@ -179,7 +179,7 @@ const Navbar = () => {
                           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                         >
                           <Settings size={16} />
-                          Admin Dashboard
+                          Bảng điều khiển quản trị
                         </Link>
                       )}
                       <hr className="my-2 border-gray-200" />

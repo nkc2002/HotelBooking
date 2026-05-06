@@ -4,6 +4,7 @@ import { Search, MapPin, Calendar, Users } from "lucide-react";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
   const [searchData, setSearchData] = useState({
     location: "",
     checkIn: "",
@@ -28,7 +29,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070"
-          alt="Luxury Hotel"
+          alt="Khách sạn cao cấp"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
@@ -89,8 +90,16 @@ const HeroSection = () => {
                   <input
                     type="date"
                     value={searchData.checkIn}
+                    min={today}
                     onChange={(e) =>
-                      setSearchData({ ...searchData, checkIn: e.target.value })
+                      setSearchData((prev) => ({
+                        ...prev,
+                        checkIn: e.target.value,
+                        checkOut:
+                          prev.checkOut && e.target.value && prev.checkOut <= e.target.value
+                            ? ""
+                            : prev.checkOut,
+                      }))
                     }
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none transition-all cursor-pointer"
                   />
@@ -110,6 +119,7 @@ const HeroSection = () => {
                   <input
                     type="date"
                     value={searchData.checkOut}
+                    min={searchData.checkIn || today}
                     onChange={(e) =>
                       setSearchData({ ...searchData, checkOut: e.target.value })
                     }

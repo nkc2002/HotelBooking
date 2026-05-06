@@ -22,7 +22,7 @@ import { useAuth } from "../context/AuthContext";
 const PAYMENT_OPTIONS = [
   {
     id: "pay_at_hotel",
-    label: "Pay at Hotel",
+    label: "Thanh toán tại khách sạn",
     description: "Pay when you arrive",
     icon: Banknote,
   },
@@ -139,7 +139,7 @@ const Booking = () => {
         setRoom({
           ...roomData,
           id: roomData._id || roomData.id,
-          title: roomData.title || roomData.name || "Room",
+          title: roomData.title || roomData.name || "Phòng",
           price: roomData.pricePerNight || roomData.price || 0,
           beds: roomData.beds || `${roomData.maxPeople || 2} guests`,
         });
@@ -214,8 +214,8 @@ const Booking = () => {
 
       setBookingResult({
         _id: booking._id || booking.id || `BK-${Date.now()}`,
-        hotelName: hotel?.name || "Hotel",
-        roomTitle: room?.title || "Room",
+        hotelName: hotel?.name || "Khách sạn",
+        roomTitle: room?.title || "Phòng",
         checkInDate: checkIn,
         checkOutDate: checkOut,
         totalPrice,
@@ -295,25 +295,25 @@ const Booking = () => {
                 </div>
                 <div className="h-px bg-gray-200" />
                 <div className="flex justify-between">
-                  <span className="text-base text-gray-500">Hotel</span>
+                  <span className="text-base text-gray-500">Khách sạn</span>
                   <span className="text-base font-medium text-gray-800 text-right max-w-[60%]">
                     {bookingResult.hotelName}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-base text-gray-500">Room</span>
+                  <span className="text-base text-gray-500">Phòng</span>
                   <span className="text-base font-medium text-gray-800">
                     {bookingResult.roomTitle}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-base text-gray-500">Check-in</span>
+                  <span className="text-base text-gray-500">Nhận phòng</span>
                   <span className="text-base font-medium text-gray-800">
                     {formatDate(bookingResult.checkInDate)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-base text-gray-500">Check-out</span>
+                  <span className="text-base text-gray-500">Trả phòng</span>
                   <span className="text-base font-medium text-gray-800">
                     {formatDate(bookingResult.checkOutDate)}
                   </span>
@@ -321,7 +321,7 @@ const Booking = () => {
                 <div className="h-px bg-gray-200" />
                 <div className="flex justify-between items-center">
                   <span className="text-base font-semibold text-gray-700">
-                    Total Paid
+                    Tổng thanh toán
                   </span>
                   <span className="text-2xl font-bold text-[#FF385C]">
                     ${bookingResult.totalPrice}
@@ -381,7 +381,7 @@ const Booking = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Guest Information
+                    Thông tin khách
                   </h2>
                   <p className="text-sm text-gray-500">
                     Enter the primary guest details
@@ -578,7 +578,7 @@ const Booking = () => {
                       <BedDouble size={18} className="text-gray-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Room Type</p>
+                      <p className="text-sm text-gray-500">Loại phòng</p>
                       <p className="text-base font-medium text-gray-800">
                         {room.title}
                       </p>
@@ -596,7 +596,7 @@ const Booking = () => {
                       <p className="text-sm text-gray-500 mb-2">Stay Dates</p>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-xs text-gray-400">Check-in</p>
+                          <p className="text-xs text-gray-400">Nhận phòng</p>
                           <p className="text-sm font-semibold text-gray-800 mt-0.5">
                             {checkIn
                               ? new Date(checkIn).toLocaleDateString("en-US", {
@@ -607,7 +607,7 @@ const Booking = () => {
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-xs text-gray-400">Check-out</p>
+                          <p className="text-xs text-gray-400">Trả phòng</p>
                           <p className="text-sm font-semibold text-gray-800 mt-0.5">
                             {checkOut
                               ? new Date(checkOut).toLocaleDateString("en-US", {
@@ -626,9 +626,9 @@ const Booking = () => {
                       <Users size={18} className="text-gray-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Guests</p>
+                      <p className="text-sm text-gray-500">Số khách</p>
                       <p className="text-base font-medium text-gray-800">
-                        {guests} {guests === 1 ? "Guest" : "Guests"}
+                        {guests} khách
                       </p>
                     </div>
                   </div>
@@ -646,9 +646,9 @@ const Booking = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-base">
-                      <span className="text-gray-500">Taxes & fees</span>
+                      <span className="text-gray-500">Thuế và phí</span>
                       <span className="text-green-600 font-medium text-sm">
-                        Included
+                        Đã bao gồm
                       </span>
                     </div>
                   </div>
@@ -657,7 +657,7 @@ const Booking = () => {
 
                   <div className="flex justify-between items-center">
                     <span className="text-base font-semibold text-gray-900">
-                      Total
+                      Tổng cộng
                     </span>
                     <div className="text-right">
                       <span className="text-3xl font-bold text-[#FF385C]">

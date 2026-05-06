@@ -260,6 +260,11 @@ class ApiService {
     return this.request(`/reviews/user/${userId}`, { auth: true });
   }
 
+  async getReviews(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reviews?${query}`, { auth: true });
+  }
+
   async getEligibleBookingsForReview(hotelId) {
     return this.request(`/reviews/eligible/${hotelId}`, { auth: true });
   }
@@ -369,6 +374,36 @@ class ApiService {
 
   async getRoomAmenities() {
     return this.request("/amenities/room");
+  }
+
+  // ========== CHAT ==========
+  async getMyConversation() {
+    return this.request("/chat/my-conversation", { auth: true });
+  }
+
+  async listConversations() {
+    return this.request("/chat/conversations", { auth: true });
+  }
+
+  async getConversationMessages(conversationId) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      auth: true,
+    });
+  }
+
+  async sendChatMessage(conversationId, content) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+      auth: true,
+    });
+  }
+
+  async markConversationRead(conversationId) {
+    return this.request(`/chat/conversations/${conversationId}/read`, {
+      method: "PATCH",
+      auth: true,
+    });
   }
 
   // ========== DASHBOARD STATS ==========

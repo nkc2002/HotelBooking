@@ -3,6 +3,8 @@ const Hotel = require('./Hotel');
 const Room = require('./Room');
 const Booking = require('./Booking');
 const Review = require('./Review');
+const Conversation = require('./Conversation');
+const Message = require('./Message');
 
 module.exports = {
   User,
@@ -10,4 +12,6 @@ module.exports = {
   Room,
   Booking,
   Review,
+  Conversation,
+  Message,
 };

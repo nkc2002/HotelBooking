@@ -39,11 +39,6 @@ const HotelCard = ({ hotel }) => {
             }`}
           />
         </button>
-        <div className="absolute bottom-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full">
-          <span className="text-sm font-semibold text-gray-800">
-            ${hotel.price}/đêm
-          </span>
-        </div>
       </div>
 
       <div>
@@ -77,10 +72,9 @@ const PopularHotels = () => {
           ...h,
           id: h._id || h.id,
           image: h.images?.[0] || h.image || "",
-          price: h.pricePerNight || h.price || 0,
           rating: h.rating || h.averageRating || 0,
           reviews: h.numReviews || h.reviews || 0,
-          location: h.city || h.location || "",
+          location: [h.address, h.city].filter(Boolean).join(", ") || h.location || "",
         }));
         setHotels(normalized);
       })

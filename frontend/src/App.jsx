@@ -24,6 +24,8 @@ import BookingsManagement from "./pages/admin/BookingsManagement";
 import UsersManagement from "./pages/admin/UsersManagement";
 import AmenitiesManagement from "./pages/admin/AmenitiesManagement";
 import BlogManagement from "./pages/admin/BlogManagement";
+import CustomerSupport from "./pages/admin/CustomerSupport";
+import ChatWidget from "./components/ChatWidget";
 
 function App() {
   return (
@@ -84,8 +86,10 @@ function App() {
               <Route path="users" element={<UsersManagement />} />
               <Route path="amenities" element={<AmenitiesManagement />} />
               <Route path="blog" element={<BlogManagement />} />
+              <Route path="support" element={<CustomerSupport />} />
             </Route>
           </Routes>
+          <ChatWidget />
         </Router>
       </WishlistProvider>
     </AuthProvider>

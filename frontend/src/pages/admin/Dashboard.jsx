@@ -63,24 +63,44 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, link }) 
   </div>
 );
 
+const formatRevLabel = (value) => {
+  if (value === 0) return "$0";
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+  return `$${value}`;
+};
+
+const BAR_MAX_HEIGHT = 140; // px
+
 const MiniBarChart = ({ data }) => {
   if (!data || data.length === 0) return null;
   const maxValue = Math.max(...data.map((d) => d.revenue), 1);
   return (
-    <div className="flex items-end gap-3 h-40">
-      {data.map((item, index) => (
-        <div key={index} className="flex-1 flex flex-col items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium">
-            ${Math.round(item.revenue / 1000)}k
-          </span>
-          <div
-            className="w-full bg-[#FF385C]/80 rounded-t hover:bg-[#FF385C] transition-colors cursor-pointer"
-            style={{ height: `${(item.revenue / maxValue) * 100}%` }}
-            title={`${item.month}: $${item.revenue.toLocaleString()}`}
-          />
-          <span className="text-sm text-gray-500">{item.month}</span>
-        </div>
-      ))}
+    <div className="flex items-end gap-3" style={{ height: BAR_MAX_HEIGHT + 48 }}>
+      {data.map((item, index) => {
+        const barHeight = item.revenue > 0
+          ? Math.max(Math.round((item.revenue / maxValue) * BAR_MAX_HEIGHT), 8)
+          : 4;
+        return (
+          <div key={index} className="flex-1 flex flex-col items-center gap-1">
+            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+              {formatRevLabel(item.revenue)}
+            </span>
+            <div className="flex-1 flex items-end w-full">
+              <div
+                className={`w-full rounded-t transition-colors cursor-pointer ${
+                  item.revenue > 0
+                    ? "bg-[#FF385C]/80 hover:bg-[#FF385C]"
+                    : "bg-gray-200"
+                }`}
+                style={{ height: barHeight }}
+                title={`${item.month}: $${item.revenue.toLocaleString()}`}
+              />
+            </div>
+            <span className="text-sm text-gray-500">{item.month}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -134,10 +154,10 @@ const Dashboard = () => {
           _id: b._id || b.id,
           guestName: b.guestInfo?.firstName
             ? `${b.guestInfo.firstName} ${b.guestInfo.lastName || ""}`.trim()
-            : b.user?.name || b.guestName || "Guest",
+            : b.user?.name || b.guestName || "Khách",
           guestEmail: b.guestInfo?.email || b.user?.email || b.guestEmail || "",
-          hotelName: b.hotel?.name || b.hotelName || "Hotel",
-          roomTitle: b.room?.title || b.roomTitle || "Room",
+          hotelName: b.hotel?.name || b.hotelName || "Khách sạn",
+          roomTitle: b.room?.title || b.roomTitle || "Phòng",
           checkIn: b.checkInDate || b.checkIn,
           checkOut: b.checkOutDate || b.checkOut,
           totalPrice: b.totalPrice || b.amount || 0,
@@ -146,21 +166,30 @@ const Dashboard = () => {
         }));
         setRecentBookings(recent);
 
-        const revenueByMonth = {};
+        // Build revenue map keyed by "YYYY-M" to handle year boundaries correctly
+        const revenueByYearMonth = {};
         bookingList.forEach((b) => {
           if (b.status === "cancelled") return;
-          const date = new Date(b.createdAt || b.checkInDate);
+          const date = new Date(b.checkInDate || b.createdAt);
           if (isNaN(date)) return;
-          const monthKey = `T${date.getMonth() + 1}`;
-          revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + (b.totalPrice || 0);
+          const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+          revenueByYearMonth[key] = (revenueByYearMonth[key] || 0) + (b.totalPrice || 0);
         });
 
-        const months = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+        // Build last 6 months (handles year wrap-around)
         const now = new Date();
-        const last6 = months.slice(Math.max(0, now.getMonth() - 5), now.getMonth() + 1);
-        setMonthlyRevenue(last6.map((m) => ({ month: m, revenue: revenueByMonth[m] || 0 })));
+        const last6 = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+          last6.push({
+            month: `T${d.getMonth() + 1}`,
+            revenue: revenueByYearMonth[key] || 0,
+          });
+        }
+        setMonthlyRevenue(last6);
       } catch (err) {
-        console.error("Dashboard fetch error:", err);
+        console.error("Lỗi tải bảng điều khiển:", err);
       } finally {
         setLoading(false);
       }
@@ -207,7 +236,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Bảng điều khiển</h1>
           <p className="text-gray-500 mt-1">
             Chào mừng trở lại! Đây là tổng quan hệ thống của bạn.
           </p>
@@ -293,10 +322,6 @@ const Dashboard = () => {
               <p className="text-sm text-gray-500 mt-0.5">
                 Tổng quan doanh thu 6 tháng gần nhất
               </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <TrendingUp size={18} className="text-green-500" />
-              <span className="text-green-600 font-medium">Thực tế</span>
             </div>
           </div>
           <MiniBarChart data={monthlyRevenue} />

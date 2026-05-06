@@ -1,20 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, X, SlidersHorizontal } from 'lucide-react';
 
-const amenitiesList = [
-  { id: 'wifi', label: 'Free WiFi' },
-  { id: 'parking', label: 'Parking' },
-  { id: 'pool', label: 'Swimming Pool' },
-  { id: 'gym', label: 'Fitness Center' },
-  { id: 'spa', label: 'Spa' },
-  { id: 'restaurant', label: 'Restaurant' },
-  { id: 'bar', label: 'Bar' },
-  { id: 'ac', label: 'Air Conditioning' },
-  { id: 'breakfast', label: 'Breakfast Included' },
-  { id: 'pet', label: 'Pet Friendly' },
-];
-
-const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, showCloseButton = false }) => {
+const FilterContent = ({ filters, onFilterChange, onClose, availableCities = [], showHeader = true, showCloseButton = false }) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
   useEffect(() => {
@@ -42,12 +29,12 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
     onFilterChange(newFilters);
   };
 
-  const handleAmenityChange = (amenityId) => {
-    const newAmenities = localFilters.amenities.includes(amenityId)
-      ? localFilters.amenities.filter((a) => a !== amenityId)
-      : [...localFilters.amenities, amenityId];
-    
-    const newFilters = { ...localFilters, amenities: newAmenities };
+  const handleCityChange = (cityLabel) => {
+    const newCities = localFilters.cities.includes(cityLabel)
+      ? localFilters.cities.filter((city) => city !== cityLabel)
+      : [...localFilters.cities, cityLabel];
+
+    const newFilters = { ...localFilters, cities: newCities };
     setLocalFilters(newFilters);
     onFilterChange(newFilters);
   };
@@ -56,7 +43,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
     const clearedFilters = {
       priceRange: { min: 0, max: 1000 },
       rating: null,
-      amenities: [],
+      cities: [],
     };
     setLocalFilters(clearedFilters);
     onFilterChange(clearedFilters);
@@ -64,7 +51,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
 
   const hasActiveFilters = 
     localFilters.rating !== null || 
-    localFilters.amenities.length > 0 ||
+    localFilters.cities.length > 0 ||
     localFilters.priceRange.min > 0 ||
     localFilters.priceRange.max < 1000;
 
@@ -75,7 +62,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={20} className="text-gray-700" />
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
           </div>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (
@@ -83,7 +70,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
                 onClick={clearFilters}
                 className="text-sm text-[#FF385C] hover:underline cursor-pointer"
               >
-                Clear all
+                Xóa tất cả
               </button>
             )}
             {showCloseButton && (
@@ -100,11 +87,11 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
 
       {/* Price Range */}
       <div className="mb-6 pb-6 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Price Range</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Khoảng giá</h3>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <label className="block text-xs text-gray-500 mb-1">Min Price</label>
+              <label className="block text-xs text-gray-500 mb-1">Giá thấp nhất</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                 <input
@@ -119,7 +106,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
             </div>
             <span className="text-gray-400 mt-5">—</span>
             <div className="flex-1">
-              <label className="block text-xs text-gray-500 mb-1">Max Price</label>
+              <label className="block text-xs text-gray-500 mb-1">Giá cao nhất</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                 <input
@@ -183,7 +170,7 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
 
       {/* Rating */}
       <div className="mb-6 pb-6 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Guest Rating</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Đánh giá của khách</h3>
         <div className="flex flex-wrap gap-2">
           {[5, 4, 3, 2, 1].map((rating) => (
             <button
@@ -205,60 +192,60 @@ const FilterContent = ({ filters, onFilterChange, onClose, showHeader = true, sh
         </div>
       </div>
 
-      {/* Amenities */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Amenities</h3>
-        <div className="space-y-2">
-          {amenitiesList.map((amenity) => (
-            <label
-              key={amenity.id}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={localFilters.amenities.includes(amenity.id)}
-                  onChange={() => handleAmenityChange(amenity.id)}
-                  className="sr-only peer"
-                />
-                <div className="w-5 h-5 border-2 border-gray-300 rounded peer-checked:border-[#FF385C] peer-checked:bg-[#FF385C] transition-colors">
-                  {localFilters.amenities.includes(amenity.id) && (
-                    <svg className="w-full h-full text-white p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
+      {/* Cities */}
+      {availableCities.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Địa điểm</h3>
+          <div className="space-y-2">
+            {availableCities.map((cityLabel) => (
+              <label
+                key={cityLabel}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={localFilters.cities.includes(cityLabel)}
+                    onChange={() => handleCityChange(cityLabel)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-5 h-5 border-2 border-gray-300 rounded peer-checked:border-[#FF385C] peer-checked:bg-[#FF385C] transition-colors">
+                    {localFilters.cities.includes(cityLabel) && (
+                      <svg className="w-full h-full text-white p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                {amenity.label}
-              </span>
-            </label>
-          ))}
+                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                  {cityLabel}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 // Mobile Filter Sidebar (Overlay)
-const MobileFilterSidebar = ({ filters, onFilterChange, isOpen, onClose }) => {
+const MobileFilterSidebar = ({ filters, onFilterChange, isOpen, onClose, availableCities = [] }) => {
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Overlay */}
       <div 
         className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         onClick={onClose}
       />
-
-      {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-50 w-80 bg-white overflow-y-auto lg:hidden">
         <div className="p-6">
           <FilterContent 
             filters={filters} 
             onFilterChange={onFilterChange} 
             onClose={onClose}
+            availableCities={availableCities}
             showCloseButton={true}
           />
         </div>
@@ -268,12 +255,13 @@ const MobileFilterSidebar = ({ filters, onFilterChange, isOpen, onClose }) => {
 };
 
 // Desktop Filter Sidebar (Static)
-const DesktopFilterSidebar = ({ filters, onFilterChange }) => {
+const DesktopFilterSidebar = ({ filters, onFilterChange, availableCities = [] }) => {
   return (
     <FilterContent 
       filters={filters} 
       onFilterChange={onFilterChange} 
       onClose={() => {}}
+      availableCities={availableCities}
       showCloseButton={false}
     />
   );

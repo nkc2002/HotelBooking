@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  getAllReviews,
   getHotelReviews,
   getReview,
   createReview,
@@ -10,6 +11,9 @@ const {
   getEligibleBookings,
 } = require('../controllers/reviewController');
 const { verifyToken } = require('../middleware/authMiddleware');
+
+// Admin route
+router.get('/', verifyToken, getAllReviews);
 
 // Public routes
 router.get('/hotel/:hotelId', getHotelReviews);

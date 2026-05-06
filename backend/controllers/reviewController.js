@@ -3,6 +3,20 @@ const Hotel = require('../models/Hotel');
 const Booking = require('../models/Booking');
 const asyncHandler = require('../utils/asyncHandler');
 
+// @desc    Get all reviews (admin)
+// @route   GET /api/v1/reviews
+// @access  Private/Admin
+const getAllReviews = asyncHandler(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+  const reviews = await Review.find()
+    .populate('userId', 'name')
+    .populate('hotelId', 'name')
+    .sort({ createdAt: -1 })
+    .limit(limit);
+
+  res.status(200).json({ success: true, count: reviews.length, data: reviews });
+});
+
 // @desc    Get all reviews for a hotel
 // @route   GET /api/v1/reviews/hotel/:hotelId
 // @access  Public
@@ -217,6 +231,7 @@ const getEligibleBookings = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getAllReviews,
   getHotelReviews,
   getReview,
   createReview,

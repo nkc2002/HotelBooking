@@ -31,15 +31,67 @@ const getHotels = asyncHandler(async (req, res) => {
     .limit(Number(limit))
     .sort({ createdAt: -1 });
 
+  const hotelIds = hotels.map((h) => h._id);
+  const reviewStats = hotelIds.length
+    ? await Review.aggregate([
+        { $match: { hotelId: { $in: hotelIds } } },
+        {
+          $group: {
+            _id: "$hotelId",
+            averageRating: { $avg: "$rating" },
+            numReviews: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const roomPriceStats = hotelIds.length
+    ? await Room.aggregate([
+        { $match: { hotelId: { $in: hotelIds } } },
+        {
+          $group: {
+            _id: "$hotelId",
+            minRoomPrice: { $min: "$price" },
+          },
+        },
+      ])
+    : [];
+
+  const statsMap = new Map(
+    reviewStats.map((s) => [
+      s._id.toString(),
+      {
+        averageRating: Math.round((s.averageRating || 0) * 10) / 10,
+        numReviews: s.numReviews || 0,
+      },
+    ])
+  );
+
+  const roomPriceMap = new Map(
+    roomPriceStats.map((s) => [s._id.toString(), s.minRoomPrice])
+  );
+
+  const hotelsWithStats = hotels.map((hotel) => {
+    const stats = statsMap.get(hotel._id.toString()) || { averageRating: 0, numReviews: 0 };
+    const minRoomPrice = roomPriceMap.get(hotel._id.toString());
+    const obj = hotel.toObject();
+    return {
+      ...obj,
+      averageRating: stats.averageRating,
+      numReviews: stats.numReviews,
+      minRoomPrice: typeof minRoomPrice === "number" ? minRoomPrice : null,
+    };
+  });
+
   const total = await Hotel.countDocuments(query);
 
   res.status(200).json({
     success: true,
-    count: hotels.length,
+    count: hotelsWithStats.length,
     total,
     page: Number(page),
     pages: Math.ceil(total / Number(limit)),
-    data: hotels,
+    data: hotelsWithStats,
   });
 });
 
@@ -56,9 +108,28 @@ const getHotel = asyncHandler(async (req, res) => {
     });
   }
 
+  const [stats] = await Review.aggregate([
+    {
+      $match: {
+        hotelId: hotel._id,
+      },
+    },
+    {
+      $group: {
+        _id: "$hotelId",
+        averageRating: { $avg: "$rating" },
+        numReviews: { $sum: 1 },
+      },
+    },
+  ]);
+
   res.status(200).json({
     success: true,
-    data: hotel,
+    data: {
+      ...hotel.toObject(),
+      averageRating: Math.round((stats?.averageRating || 0) * 10) / 10,
+      numReviews: stats?.numReviews || 0,
+    },
   });
 });
 

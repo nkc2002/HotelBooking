@@ -1,10 +1,13 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { Server } = require('socket.io');
 const connectDatabase = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const routes = require('./routes');
 const User = require('./models/User');
+const initChatSocket = require('./sockets/chatSocket');
 
 // Load env vars
 dotenv.config();
@@ -67,7 +70,15 @@ const startServer = async () => {
     await connectDatabase();
     await ensureDefaultAdmin();
 
-    const server = app.listen(PORT, () => {
+    const server = http.createServer(app);
+
+    const io = new Server(server, {
+      cors: { origin: '*', methods: ['GET', 'POST'] },
+    });
+    initChatSocket(io);
+    app.set('io', io);
+
+    server.listen(PORT, () => {
       console.log(
         `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
       );
