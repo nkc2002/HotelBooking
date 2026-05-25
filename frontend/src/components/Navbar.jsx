@@ -198,14 +198,14 @@ const Navbar = () => {
                         onClick={() => setIsMenuOpen(false)}
                         className="block px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-100 cursor-pointer"
                       >
-                        Log in
+                        Đăng nhập
                       </Link>
                       <Link
                         to="/register"
                         onClick={() => setIsMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                       >
-                        Sign up
+                        Đăng ký
                       </Link>
                       <hr className="my-2 border-gray-200" />
                       <Link
@@ -213,16 +213,16 @@ const Navbar = () => {
                         onClick={() => setIsMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                       >
-                        Explore Hotels
+                        Khám phá khách sạn
                       </Link>
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
-                          alert("Help Center coming soon!");
+                          alert("Trung tâm trợ giúp sắp ra mắt!");
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                       >
-                        Help Center
+                        Trung tâm trợ giúp
                       </button>
                     </>
                   )}
