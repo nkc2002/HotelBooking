@@ -30,7 +30,7 @@ const HotelCard = ({ hotel }) => {
   };
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+    <div className="group flex h-full flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer">
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden">
         <img
@@ -51,9 +51,9 @@ const HotelCard = ({ hotel }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-4">
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-2">
+        <div className="flex min-h-[22px] items-center gap-1 mb-2">
           {hasReviews ? (
             <>
               <Star size={16} className="text-[#FF385C] fill-[#FF385C]" />
@@ -66,41 +66,45 @@ const HotelCard = ({ hotel }) => {
         </div>
 
         {/* Name */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#FF385C] transition-colors">
+        <h3 className="min-h-[28px] text-lg font-semibold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#FF385C] transition-colors">
           {name}
         </h3>
 
         {/* Location */}
-        <div className="flex items-center gap-1 text-gray-500 mb-3">
-          <MapPin size={14} />
+        <div className="flex min-h-[22px] items-center gap-1 text-gray-500 mb-3">
+          <MapPin size={14} className="shrink-0" />
           <span className="text-sm line-clamp-1">{location}</span>
         </div>
 
         {/* Amenities */}
-        {amenities.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            {amenities.slice(0, 3).map((amenity) => {
-              const Icon = amenityIcons[amenity] || Wifi;
-              return (
-                <div
-                  key={amenity}
-                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md"
-                >
-                  <Icon size={12} className="text-gray-600" />
-                  <span className="text-xs text-gray-600 capitalize">{amenity}</span>
-                </div>
-              );
-            })}
-            {amenities.length > 3 && (
-              <span className="text-xs text-gray-500">+{amenities.length - 3} tiện ích khác</span>
-            )}
-          </div>
-        )}
+        <div className="mb-4 min-h-[70px]">
+          {amenities.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {amenities.slice(0, 3).map((amenity) => {
+                const Icon = amenityIcons[amenity] || Wifi;
+                return (
+                  <div
+                    key={amenity}
+                    className="inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 px-2 py-1"
+                  >
+                    <Icon size={12} className="shrink-0 text-gray-600" />
+                    <span className="truncate text-xs text-gray-600 capitalize">{amenity}</span>
+                  </div>
+                );
+              })}
+              {amenities.length > 3 && (
+                <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                  +{amenities.length - 3} khác
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* View Detail Button */}
         <Link
           to={`/hotels/${id}`}
-          className="block w-full py-2.5 text-center bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer"
+          className="mt-auto block w-full py-2.5 text-center bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer"
         >
           Xem chi tiết
         </Link>
