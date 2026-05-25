@@ -1,5 +1,13 @@
+const normalizeOrigin = (url) => {
+  if (!url) return "";
+  const trimmed = url.replace(/\/$/, "");
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
+const BACKEND_URL = normalizeOrigin(import.meta.env.VITE_BACKEND_URL);
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+  import.meta.env.VITE_API_URL ||
+  (BACKEND_URL ? `${BACKEND_URL}/api/v1` : "http://localhost:5000/api/v1");
 
 class ApiService {
   constructor() {

@@ -60,6 +60,7 @@ const getApiUrl = () =>
   (
     process.env.API_PUBLIC_URL ||
     process.env.SERVER_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
     `http://localhost:${process.env.PORT || 5000}`
   ).replace(/\/$/, "");
 
